@@ -1,0 +1,22 @@
+{
+  "name": "@ankt/cowin",
+  "version": "0.0.7",
+  "description": "Check for vaccination slots in your district",
+  "main": "cowin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "cowin": "bin/cowin.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "preferGlobal": true,
+  "dependencies": {
+    "command-line-args": "^5.1.1",
+    "command-line-usage": "^6.1.1",
+    "node-fetch": "^2.6.1",
+    "open": "^8.2.0"
+  }
+}
