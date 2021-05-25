@@ -1,3 +1,7 @@
+Script to check for available slots for 18+ on https://www.cowin.gov.in/home.  It checks for available slots every 5 seconds and launches the user's default browser with the cowin url as
+soon as the slot is found.
+
+Note: Since it, by default, makes requests to cowin APIs every 5 seocnd(feel free to change it in the script), it's recommended to run this just before the slots are reset. Otherwise, it may run into API rate limit problems and your IP may get blocked.
 
 ###### Usage:
 
