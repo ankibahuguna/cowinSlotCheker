@@ -1,6 +1,6 @@
 {
   "name": "@ankt/cowin",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Check for vaccination slots in your district",
   "main": "cowin.js",
   "scripts": {
