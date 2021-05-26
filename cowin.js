@@ -12,6 +12,18 @@ const optionsDef = [
         type: Boolean
     },
     {
+        name: "date",
+        alias: "t",
+        description: "Date to check the slots in format MM-DD-YYYY",
+        type: String
+    },
+    {
+        name: "refresh",
+        alias: "r",
+        description: "Refresh interval(defaults to 5 seconds)",
+        type: String
+    },
+    {
         name: "age",
         alias: "a",
         description:
@@ -30,10 +42,9 @@ const optionsDef = [
 
 const pinger = setInterval(slotChecker, 5000);
 
-const getRequestURL = ({ state, district, pin }) => {
+const getRequestURL = ({ state, district, pin, date }) => {
     const apiURL =
         "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public";
-    const date = new Date();
     const dateFmt = `${date.getDate()}-0${
         date.getMonth() + 1
     }-${date.getFullYear()}`;
@@ -82,6 +93,9 @@ async function slotChecker() {
         }
 
         const { age = 18, state, district, pin } = options;
+        const { date: slotDate } = options;
+
+        const date = slotDate ? new Date(slotDate.trim()) : new Date();
 
         if (!district && !state && !pin) {
             console.log("Please specify state and district or pincode");
@@ -89,19 +103,22 @@ async function slotChecker() {
             process.exit(1);
         }
 
-        const response = await fetch(getRequestURL({ state, district, pin }), {
-            headers: {
-                accept: "application/json, text/plain, */*",
-                "accept-language":
-                    "en-US,en;q=0.9,hi;q=0.8,th;q=0.7,ar;q=0.6,es;q=0.5",
-                "user-agent":
-                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
-            },
-            referrer: "https://www.cowin.gov.in/",
-            referrerPolicy: "strict-origin-when-cross-origin",
-            body: null,
-            method: "GET"
-        });
+        const response = await fetch(
+            getRequestURL({ state, district, pin, date }),
+            {
+                headers: {
+                    accept: "application/json, text/plain, */*",
+                    "accept-language":
+                        "en-US,en;q=0.9,hi;q=0.8,th;q=0.7,ar;q=0.6,es;q=0.5",
+                    "user-agent":
+                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+                },
+                referrer: "https://www.cowin.gov.in/",
+                referrerPolicy: "strict-origin-when-cross-origin",
+                body: null,
+                method: "GET"
+            }
+        );
 
         const slots = await response.json();
 
@@ -115,12 +132,13 @@ async function slotChecker() {
                 .filter(hasDose1Slots);
         };
 
-        const availableSlots = centers.filter(center => {
+        const availableSlots = centers?.filter(center => {
             const validCenters = filter18PlusCenters(center.sessions);
             return validCenters.length > 0;
         });
 
         if (availableSlots.length) {
+            console.log(JSON.stringify(availableSlots, null, " "));
             clearInterval(pinger);
             console.log(
                 `Found  slots in pin codes`,
