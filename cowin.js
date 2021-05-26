@@ -18,12 +18,6 @@ const optionsDef = [
         type: String
     },
     {
-        name: "refresh",
-        alias: "r",
-        description: "Refresh interval(defaults to 5 seconds)",
-        type: String
-    },
-    {
         name: "age",
         alias: "a",
         description:
@@ -53,23 +47,58 @@ const getRequestURL = ({ state, district, pin, date }) => {
         return `${apiURL}/calendarByPin?pincode=${pin}&date=${dateFmt}`;
     }
 
-    const { district_id } = getDistrictAndStateCodes(state, district);
-    console.log(`Checking for available slots: ${dateFmt}`);
+    if (!state && !district) {
+        console.log(
+            `Please specify district ( and state) or pin code. Type cowin -h for example usage.`
+        );
+
+        process.exit(1);
+    }
+
+    if (state && !district) {
+        console.log(`Please specify your state`);
+        process.exit(1);
+    }
+    const { district_id, district_name, state_name } = getDistrictAndStateCodes(
+        state,
+        district
+    );
+    console.log(
+        `Searching for available vaccine slots in ${district_name}, ${state_name} on ${dateFmt}`
+    );
 
     return `${apiURL}/calendarByDistrict?district_id=${district_id}&date=${dateFmt}`;
 };
 
 const getDistrictAndStateCodes = (state, district) => {
     const districts = stateDistrictMap.filter(
-        st => st.state_name === state && st["district name"] === district
+        ({
+            state_name,
+            "district name": district_name,
+            "district id": district_id
+        }) => {
+            if (state) {
+                return (
+                    state_name.trim() === state.trim() &&
+                    district.trim() === district_name.trim()
+                );
+            }
+
+            return district.trim() === district_name.trim();
+        }
     );
-    if (!districts.length) {
+
+    if (!districts.length || districts.length > 1) {
         throw new Error("Invalid state or district name");
         process.exit(1);
     }
 
-    const { "district id": district_id } = districts.pop();
-    return { district_id };
+    const {
+        "district id": district_id,
+        state_name,
+        "district name": district_name
+    } = districts.pop();
+    return { district_id, state_name, district_name };
 };
 
 async function slotChecker() {
@@ -79,7 +108,7 @@ async function slotChecker() {
             {
                 header: "Typical Example",
                 content:
-                    "cowin -s Uttarakhand -d Dehradun -a 45\n or \n cowin -p 258005"
+                    "cowin -s Uttarakhand -d Dehradun -a 45\n or \n cowin -p 258005\n With date \n cowin -s 'Uttar Pradesh' -d 'Saharanpur' -t 05/29/2021"
             },
             {
                 header: "Options",
@@ -96,12 +125,6 @@ async function slotChecker() {
         const { date: slotDate } = options;
 
         const date = slotDate ? new Date(slotDate.trim()) : new Date();
-
-        if (!district && !state && !pin) {
-            console.log("Please specify state and district or pincode");
-            console.log(usage);
-            process.exit(1);
-        }
 
         const response = await fetch(
             getRequestURL({ state, district, pin, date }),
