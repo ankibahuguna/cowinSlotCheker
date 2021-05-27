@@ -160,7 +160,7 @@ async function slotChecker() {
             return validCenters.length > 0;
         });
 
-        if (availableSlots.length) {
+        if (availableSlots?.length) {
             console.log(JSON.stringify(availableSlots, null, " "));
             clearInterval(pinger);
             console.log(
